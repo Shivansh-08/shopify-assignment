@@ -1,15 +1,82 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// Store info - each shopify store is a tenant
+model Store {
+  id          String @id @default(cuid())
+  name        String
+  domain      String @unique // like "mystore.myshopify.com"
+  accessToken String // shopify access token
+  createdAt   DateTime @default(now())
+  
+  // relationships
+  users     User[]
+  customers Customer[]
+  products  Product[]
+  orders    Order[]
+}
+
+// Users who can login to dashboard
+model User {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String
+  name     String?
+  storeId  String
+  
+  store Store @relation(fields: [storeId], references: [id])
+}
+
+// Shopify customers
+model Customer {
+  id         String @id @default(cuid())
+  shopifyId  String // shopify customer id
+  storeId    String
+  email      String?
+  firstName  String?
+  lastName   String?
+  totalSpent Float @default(0)
+  createdAt  DateTime @default(now())
+  
+  store  Store   @relation(fields: [storeId], references: [id])
+  orders Order[]
+  
+  @@unique([shopifyId, storeId])
+}
+
+// Shopify products
+model Product {
+  id        String @id @default(cuid())
+  shopifyId String // shopify product id
+  storeId   String
+  title     String
+  price     Float?
+  createdAt DateTime @default(now())
+  
+  store Store @relation(fields: [storeId], references: [id])
+  
+  @@unique([shopifyId, storeId])
+}
+
+// Shopify orders
+model Order {
+  id          String @id @default(cuid())
+  shopifyId   String // shopify order id
+  storeId     String
+  customerId  String?
+  orderNumber String
+  totalPrice  Float
+  orderDate   DateTime
+  createdAt   DateTime @default(now())
+  
+  store    Store     @relation(fields: [storeId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+  
+  @@unique([shopifyId, storeId])
 }
