@@ -7,22 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Store info - each shopify store is a tenant
 model Store {
-  id          String @id @default(cuid())
-  name        String
-  domain      String @unique // like "mystore.myshopify.com"
-  accessToken String // shopify access token
-  createdAt   DateTime @default(now())
-  
-  // relationships
+  id           String     @id @default(cuid())
+  name         String
+  domain       String     @unique
+  accessToken  String
+  createdAt    DateTime   @default(now())
+  lastSyncedAt DateTime?
+
   users     User[]
   customers Customer[]
   products  Product[]
   orders    Order[]
 }
 
-// Users who can login to dashboard
 model User {
   id       String @id @default(cuid())
   email    String @unique
@@ -30,53 +28,74 @@ model User {
   name     String?
   storeId  String
   
-  store Store @relation(fields: [storeId], references: [id])
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
-// Shopify customers
 model Customer {
-  id         String @id @default(cuid())
-  shopifyId  String // shopify customer id
+  id         String   @id @default(cuid())
+  shopifyId  String
   storeId    String
   email      String?
   firstName  String?
   lastName   String?
-  totalSpent Float @default(0)
+  totalSpent Float    @default(0)
   createdAt  DateTime @default(now())
   
-  store  Store   @relation(fields: [storeId], references: [id])
+  store  Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
   orders Order[]
   
   @@unique([shopifyId, storeId])
 }
 
-// Shopify products
 model Product {
-  id        String @id @default(cuid())
-  shopifyId String // shopify product id
+  id        String     @id @default(cuid())
+  shopifyId String
   storeId   String
   title     String
   price     Float?
-  createdAt DateTime @default(now())
+  createdAt DateTime   @default(now())
   
-  store Store @relation(fields: [storeId], references: [id])
-  
+  store     Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  // Relation to the new LineItem model
+  lineItems LineItem[] 
+
   @@unique([shopifyId, storeId])
 }
 
-// Shopify orders
 model Order {
-  id          String @id @default(cuid())
-  shopifyId   String // shopify order id
-  storeId     String
-  customerId  String?
-  orderNumber String
-  totalPrice  Float
-  orderDate   DateTime
-  createdAt   DateTime @default(now())
+  id                String   @id @default(cuid())
+  shopifyId         String
+  storeId           String
+  customerId        String?
+  orderNumber       String
+  totalPrice        Float
+  orderDate         DateTime
+  financialStatus   String?
+  fulfillmentStatus String?
+  createdAt         DateTime @default(now())
   
-  store    Store     @relation(fields: [storeId], references: [id])
-  customer Customer? @relation(fields: [customerId], references: [id])
-  
+  store     Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  customer  Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  // Relation to the new LineItem model
+  lineItems LineItem[] 
+
   @@unique([shopifyId, storeId])
 }
+
+// ---- NEW MODEL ADDED HERE ----
+// This table links products to orders, tracking each item sold.
+model LineItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String?
+  shopifyId String   
+  quantity  Int
+  price     Float    
+  title     String   
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@unique([shopifyId, orderId])
+}
+
