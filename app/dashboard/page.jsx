@@ -25,7 +25,7 @@ import {
   RefreshCw,
   Calendar
 } from 'lucide-react'
-import { ManualSyncButton } from '../../components/dashboard/ManualSyncButton'
+import { ManualSyncButton } from '@/components/dashboard/ManualSyncButton'
 
 ChartJS.register(
   CategoryScale,
@@ -429,4 +429,3 @@ export default function DashboardPage() {
   )
 }
 
-  
