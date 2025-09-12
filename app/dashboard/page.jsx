@@ -109,7 +109,7 @@ export default function DashboardPage() {
           style: 'currency',
           currency: 'INR',
           maximumFractionDigits: 0,
-      }).format(amount);
+      }).format(amount || 0);
   };
 
 
@@ -191,7 +191,12 @@ export default function DashboardPage() {
   }
 
   const customerSpendingData = {
-    labels: data.topCustomers.map(c => c.email.split('@')[0]),
+    labels: data.topCustomers.map(c => {
+        // --- THIS IS THE CORRECTED LOGIC ---
+        // It now safely uses the customer's full name for the chart label.
+        const name = `${c.firstName || ''} ${c.lastName || ''}`.trim();
+        return name || 'Guest Customer'; // Fallback for customers with no name
+    }),
     datasets: [
       {
         data: data.topCustomers.map(c => c.totalSpent),
@@ -280,7 +285,6 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-medium">Total Revenue</p>
-              {/* CORRECTED: Using the formatCurrency function */}
               <p className="text-2xl font-bold text-gray-900">{formatCurrency(data.revenue)}</p>
               <div className="flex items-center mt-2">
                 <ArrowUpRight className="h-4 w-4 text-green-500" />
@@ -332,7 +336,6 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-medium">Avg Order Value</p>
-              {/* CORRECTED: Using the formatCurrency function */}
               <p className="text-2xl font-bold text-gray-900">
                 {formatCurrency(data.revenue / data.totalOrders || 0)}
               </p>
@@ -349,18 +352,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ... (rest of the charts and components are the same) ... */}
-       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Revenue Trend</h3>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                <span className="text-sm text-gray-600">Revenue</span>
-              </div>
-            </div>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Revenue Trend</h3>
           <div className="h-80">
             <Line data={revenueChartData} options={chartOptions} />
           </div>
@@ -371,19 +365,10 @@ export default function DashboardPage() {
             <Doughnut data={customerSpendingData} options={doughnutOptions} />
           </div>
         </div>
-        <div>
-          <ManualSyncButton />
-        </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Daily Orders</h3>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-              <span className="text-sm text-gray-600">Orders</span>
-            </div>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">Daily Orders</h3>
           <div className="h-64">
             <Bar data={ordersChartData} options={chartOptions} />
           </div>
@@ -396,29 +381,27 @@ export default function DashboardPage() {
                 <span className="text-sm font-medium text-gray-700">Store Name</span>
                 <span className="text-sm text-gray-900">{status.storeName}</span>
               </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Customers</span>
-                  <span className="text-sm font-semibold text-gray-900">{status.totalCustomers}</span>
+              <div className="space-y-3 pt-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Customers</span>
+                  <span className="font-semibold text-gray-900">{status.totalCustomers}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Products</span>
-                  <span className="text-sm font-semibold text-gray-900">{status.totalProducts}</span>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Products</span>
+                  <span className="font-semibold text-gray-900">{status.totalProducts}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Orders</span>
-                  <span className="text-sm font-semibold text-gray-900">{status.totalOrders}</span>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Orders</span>
+                  <span className="font-semibold text-gray-900">{status.totalOrders}</span>
                 </div>
               </div>
               <div className="pt-4 border-t border-gray-200">
-                <div className="flex items-center">
+                <div className="flex items-center text-sm text-gray-600">
                   <Activity className="h-4 w-4 text-green-500 mr-2" />
-                  <span className="text-sm text-gray-600">Last Sync:</span>
+                  <span>Last Sync:</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  {status.lastSyncedAt
-                    ? new Date(status.lastSyncedAt).toLocaleString()
-                    : 'Never'}
+                  {status.lastSyncedAt ? new Date(status.lastSyncedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Never'}
                 </p>
               </div>
             </div>
