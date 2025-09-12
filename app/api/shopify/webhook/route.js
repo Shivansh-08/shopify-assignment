@@ -10,8 +10,6 @@ export async function POST(request) {
     
     console.log(`Webhook Received: ${topic} from ${shopDomain}`)
     
-    const data = JSON.parse(body)
-    
     const store = await prisma.store.findFirst({
       where: { domain: shopDomain }
     })
@@ -21,9 +19,23 @@ export async function POST(request) {
       return new Response('Store not found', { status: 404 })
     }
     
-    // --- Webhook verification is a great practice for production ---
-    // if (signature && process.env.SHOPIFY_WEBHOOK_SECRET) { ... }
+    // --- THIS BLOCK IS NOW ENABLED ---
+    // Verifies that the webhook request is genuinely from Shopify
+    if (signature && process.env.SHOPIFY_WEBHOOK_SECRET) {
+      const expectedSignature = crypto
+        .createHmac('sha256', process.env.SHOPIFY_WEBHOOK_SECRET)
+        .update(body, 'utf8')
+        .digest('base64')
+      
+      if (signature !== expectedSignature) {
+        console.error('Invalid webhook signature')
+        return new Response('Unauthorized', { status: 401 })
+      }
+      console.log('Webhook signature verified successfully.')
+    }
     
+    const data = JSON.parse(body)
+
     // Route event to the correct handler
     switch (topic) {
       case 'orders/create':
@@ -84,8 +96,6 @@ async function handleOrderUpsert(order, storeId) {
       }
     })
 
-    // --- THIS IS THE CRITICAL ADDITION ---
-    // Process all line items associated with the order
     for (const item of order.line_items) {
       const existingProduct = await prisma.product.findFirst({
           where: { shopifyId: item.product_id?.toString(), storeId }
@@ -149,17 +159,32 @@ async function handleCustomerUpsert(customer, storeId) {
   })
 }
 
-// Handles creating/updating products
+// Handles creating/updating products safely
 async function handleProductUpsert(product, storeId) {
-  await prisma.product.upsert({
-    where: { shopifyId_storeId: { shopifyId: product.id.toString(), storeId } },
-    update: {
-      title: product.title,
-      price: parseFloat(product.variants[0]?.price || 0)
-    },
-    create: {
-      shopifyId: product.id.toString(), storeId, title: product.title,
-      price: parseFloat(product.variants[0]?.price || 0)
-    }
-  })
+  try {
+    console.log(`Processing product upsert: ${product.title}`);
+    
+    // Safely get the price from the first available variant
+    const price = product.variants && product.variants.length > 0
+      ? parseFloat(product.variants[0].price || 0)
+      : 0;
+
+    await prisma.product.upsert({
+      where: { shopifyId_storeId: { shopifyId: product.id.toString(), storeId } },
+      update: {
+        title: product.title,
+        price: price
+      },
+      create: {
+        shopifyId: product.id.toString(),
+        storeId,
+        title: product.title,
+        price: price
+      }
+    });
+    console.log(`Successfully processed product: ${product.title}`);
+  } catch (error) {
+    console.error(`Error handling product upsert for product "${product.title}":`, error);
+  }
 }
+
