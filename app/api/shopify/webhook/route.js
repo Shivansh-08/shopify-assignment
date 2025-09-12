@@ -19,7 +19,14 @@ export async function POST(request) {
       return new Response('Store not found', { status: 404 })
     }
     
-    // --- THIS BLOCK IS NOW ENABLED ---
+    // --- TEMPORARY DEBUGGING BLOCK ---
+    // This will show us the exact secret key your Vercel server is using.
+    // IMPORTANT: You should remove this block after we have fixed the issue.
+    console.log('--- DEBUGGING WEBHOOK SIGNATURE ---');
+    console.log('Secret Key from Vercel ENV:', process.env.SHOPIFY_WEBHOOK_SECRET);
+    console.log('Signature from Shopify Header:', signature);
+    console.log('-----------------------------------');
+    
     // Verifies that the webhook request is genuinely from Shopify
     if (signature && process.env.SHOPIFY_WEBHOOK_SECRET) {
       const expectedSignature = crypto
@@ -29,6 +36,8 @@ export async function POST(request) {
       
       if (signature !== expectedSignature) {
         console.error('Invalid webhook signature')
+        // We will log the expected signature to compare
+        console.error('Expected Signature:', expectedSignature);
         return new Response('Unauthorized', { status: 401 })
       }
       console.log('Webhook signature verified successfully.')
