@@ -9,7 +9,8 @@ import {
   LogOut,
   BarChart3,
   Menu,
-  X
+  X,
+  Users // Import the Users icon
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -32,6 +33,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Revenue', href: '/dashboard/revenue', icon: LayoutGrid },
     { name: 'Orders', href: '/dashboard/orders', icon: ShoppingBag },
     { name: 'Products', href: '/dashboard/products', icon: ShoppingCart },
+    { name: 'Customers', href: '/dashboard/customers', icon: Users }, // New "Customers" link
   ]
   
   useEffect(() => {
