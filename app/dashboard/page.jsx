@@ -1,17 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  TrendingUp, 
-  Users, 
-  ShoppingBag, 
-  DollarSign, 
-  Activity, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  RefreshCw,
-  Calendar
-} from 'lucide-react'
 import { Line, Doughnut, Bar } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -25,6 +14,18 @@ import {
   ArcElement,
   BarElement,
 } from 'chart.js'
+import { 
+  TrendingUp, 
+  Users, 
+  ShoppingBag, 
+  DollarSign, 
+  Activity, 
+  ArrowUpRight, 
+  ArrowDownRight,
+  RefreshCw,
+  Calendar
+} from 'lucide-react'
+import { ManualSyncButton } from '../../components/dashboard/ManualSyncButton'
 
 ChartJS.register(
   CategoryScale,
@@ -37,7 +38,6 @@ ChartJS.register(
   ArcElement,
   BarElement
 )
-import { ManualSyncButton } from '../../components/dashboard/ManualSyncButton'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -76,7 +76,6 @@ export default function DashboardPage() {
       if (analyticsRes.ok && ordersRes.ok && statusRes.ok) {
         setData(analytics)
         
-        // Group orders by date
         const ordersByDateMap = orders.reduce((acc, order) => {
           const dateKey = new Date(order.orderDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
           if (!acc[dateKey]) {
@@ -87,7 +86,6 @@ export default function DashboardPage() {
           return acc
         }, {})
         
-        // Convert to array and sort by date
         const groupedOrders = Object.entries(ordersByDateMap).map(([date, data]) => ({
           date,
           orders: data.orders,
@@ -104,6 +102,16 @@ export default function DashboardPage() {
     }
     setLoading(false)
   }
+  
+  // Helper function to format currency consistently with commas
+  const formatCurrency = (amount) => {
+      return new Intl.NumberFormat('en-IN', {
+          style: 'currency',
+          currency: 'INR',
+          maximumFractionDigits: 0,
+      }).format(amount);
+  };
+
 
   const handleSync = async () => {
     setSyncing(true)
@@ -272,7 +280,8 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-medium">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">₹{data.revenue.toLocaleString()}</p>
+              {/* CORRECTED: Using the formatCurrency function */}
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(data.revenue)}</p>
               <div className="flex items-center mt-2">
                 <ArrowUpRight className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-600 font-medium">+12.5%</span>
@@ -289,7 +298,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-medium">Total Orders</p>
-              <p className="text-2xl font-bold text-gray-900">{data.totalOrders.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{data.totalOrders.toLocaleString('en-IN')}</p>
               <div className="flex items-center mt-2">
                 <ArrowUpRight className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-600 font-medium">+8.2%</span>
@@ -306,7 +315,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-medium">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900">{data.totalCustomers.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">{data.totalCustomers.toLocaleString('en-IN')}</p>
               <div className="flex items-center mt-2">
                 <ArrowUpRight className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-green-600 font-medium">+15.3%</span>
@@ -323,8 +332,9 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600 font-medium">Avg Order Value</p>
+              {/* CORRECTED: Using the formatCurrency function */}
               <p className="text-2xl font-bold text-gray-900">
-                ₹{(data.revenue / data.totalOrders || 0).toFixed(0)}
+                {formatCurrency(data.revenue / data.totalOrders || 0)}
               </p>
               <div className="flex items-center mt-2">
                 <ArrowDownRight className="h-4 w-4 text-red-500" />
@@ -339,9 +349,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Charts and Sync Button Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        {/* Revenue Chart */}
+      {/* ... (rest of the charts and components are the same) ... */}
+       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Revenue Trend</h3>
@@ -356,24 +365,17 @@ export default function DashboardPage() {
             <Line data={revenueChartData} options={chartOptions} />
           </div>
         </div>
-
-        {/* Top Customers Doughnut */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Top Customers</h3>
           <div className="h-80">
             <Doughnut data={customerSpendingData} options={doughnutOptions} />
           </div>
         </div>
-
-        {/* Manual Sync Button */}
         <div>
           <ManualSyncButton />
         </div>
       </div>
-
-      {/* Orders Chart and Store Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Orders Chart */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Daily Orders</h3>
@@ -386,8 +388,6 @@ export default function DashboardPage() {
             <Bar data={ordersChartData} options={chartOptions} />
           </div>
         </div>
-
-        {/* Store Status */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Store Status</h3>
           {status && (
@@ -396,7 +396,6 @@ export default function DashboardPage() {
                 <span className="text-sm font-medium text-gray-700">Store Name</span>
                 <span className="text-sm text-gray-900">{status.storeName}</span>
               </div>
-              
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Customers</span>
@@ -411,7 +410,6 @@ export default function DashboardPage() {
                   <span className="text-sm font-semibold text-gray-900">{status.totalOrders}</span>
                 </div>
               </div>
-
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center">
                   <Activity className="h-4 w-4 text-green-500 mr-2" />
@@ -430,3 +428,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+  

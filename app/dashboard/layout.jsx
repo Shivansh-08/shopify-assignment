@@ -3,10 +3,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
   LayoutDashboard, 
-  TrendingUp, 
-  ShoppingBag, 
-  Users, 
-  Package,
+  ShoppingBag,
+  LayoutGrid,
+  ShoppingCart,
   LogOut,
   BarChart3,
   Menu,
@@ -14,54 +13,41 @@ import {
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
+
 export default function DashboardLayout({ children }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [storeName, setStoreName] = useState('My Store')
-  const [storeInitials, setStoreInitials] = useState('MS')
+  
+  // Start with the sidebar expanded and un-interactive until the client has mounted
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [hasMounted, setHasMounted] = useState(false)
+
+  const [storeName, setStoreName] = useState('My Store');
+  const [storeInitials, setStoreInitials] = useState('MS');
+
 
   const navLinks = [
-    { 
-      name: 'Dashboard', 
-      href: '/dashboard', 
-      icon: LayoutDashboard,
-      description: 'Overview & Analytics'
-    },
-    { 
-      name: 'Revenue', 
-      href: '/dashboard/revenue', 
-      icon: TrendingUp,
-      description: 'Financial Insights'
-    },
-    { 
-      name: 'Orders', 
-      href: '/dashboard/orders', 
-      icon: ShoppingBag,
-      description: 'Order Management'
-    },
-    { 
-      name: 'Customers', 
-      href: '/dashboard/customers', 
-      icon: Users,
-      description: 'Customer Analytics'
-    },
-    { 
-      name: 'Products', 
-      href: '/dashboard/products', 
-      icon: Package,
-      description: 'Product Performance'
-    },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Revenue', href: '/dashboard/revenue', icon: LayoutGrid },
+    { name: 'Orders', href: '/dashboard/orders', icon: ShoppingBag },
+    { name: 'Products', href: '/dashboard/products', icon: ShoppingCart },
   ]
-
+  
   useEffect(() => {
+    // This effect runs only on the client
+    setHasMounted(true);
+    setIsCollapsed(true); // Set the initial collapsed state after mounting
     fetchStoreInfo()
   }, [])
 
   const fetchStoreInfo = async () => {
     try {
       const token = localStorage.getItem('token')
-      if (!token) return
+      if (!token) {
+        router.push('/auth/login');
+        return;
+      }
 
       const response = await fetch('/api/dashboard/status', {
         headers: { Authorization: `Bearer ${token}` }
@@ -74,137 +60,136 @@ export default function DashboardLayout({ children }) {
         
         setStoreName(name)
         setStoreInitials(initials)
+      } else if (response.status === 401) {
+        // Token might be invalid or expired
+        localStorage.removeItem('token');
+        router.push('/auth/login');
       }
     } catch (error) {
       console.error('Error fetching store info:', error)
     }
   }
 
+
   const handleSignOut = () => {
     localStorage.removeItem('token')
     router.push('/auth/login')
   }
 
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full text-white">
+      {/* Logo */}
+      <div className="flex items-center justify-between p-6 h-20 border-b border-gray-700">
+        <div className={`flex items-center space-x-3 overflow-hidden`}>
+          <BarChart3 className="h-8 w-8 text-white flex-shrink-0" />
+          <h2 className={`text-xl font-bold whitespace-nowrap transition-all duration-300 ${isCollapsed && hasMounted ? 'lg:opacity-0 lg:w-0' : ''}`}>
+            Shopify Analytics
+          </h2>
+        </div>
+        <button
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-700"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <X className="h-6 w-6" />
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 space-y-2">
+        {navLinks.map((link) => {
+          const Icon = link.icon
+          const isActive = pathname === link.href
+          
+          return (
+            <Link
+              key={link.name}
+              href={link.href}
+              onClick={() => setSidebarOpen(false)}
+              className={`
+                group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200
+                ${isActive 
+                  ? 'bg-blue-600 text-white shadow-lg' 
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }
+                ${isCollapsed && hasMounted ? 'lg:justify-center' : ''}
+              `}
+              title={isCollapsed && hasMounted ? link.name : ''}
+            >
+              <Icon className={`h-5 w-5 flex-shrink-0 ${isCollapsed && hasMounted ? 'lg:mr-0' : 'mr-4'}`} />
+              <span className={`transition-all duration-300 ${isCollapsed && hasMounted ? 'lg:opacity-0 lg:w-0 lg:hidden' : ''}`}>{link.name}</span>
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* User section */}
+      <div className="border-t border-gray-700 p-4">
+        <div className="flex items-center space-x-3 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center font-bold text-white flex-shrink-0">
+              {storeInitials}
+            </div>
+            <div className={`flex-1 min-w-0 transition-all duration-300 ${isCollapsed && hasMounted ? 'lg:opacity-0 lg:w-0 lg:hidden' : ''}`}>
+              <div className="text-sm font-semibold text-white truncate">
+                {storeName}
+              </div>
+              <div className="text-xs text-gray-400 truncate">
+                Store Owner
+              </div>
+            </div>
+        </div>
+        <div className="mt-4">
+            <button
+                onClick={handleSignOut}
+                className={`w-full flex items-center p-2 text-gray-300 rounded-lg hover:bg-red-800/50 hover:text-white transition-colors ${isCollapsed && hasMounted ? 'lg:justify-center' : ''}`}
+                title="Sign Out"
+            >
+                <LogOut className={`h-5 w-5 flex-shrink-0 ${isCollapsed && hasMounted ? 'lg:mr-0' : 'mr-3'}`} />
+                <span className={`text-sm font-medium transition-all duration-300 ${isCollapsed && hasMounted ? 'lg:opacity-0 lg:w-0 lg:hidden' : ''}`}>Sign Out</span>
+            </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-100 flex">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black bg-opacity-60 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Xeno Analytics
-                </h2>
-                <p className="text-xs text-gray-500">Shopify Insights</p>
-              </div>
-            </div>
-            <button
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="h-5 w-5 text-gray-500" />
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {navLinks.map((link) => {
-              const Icon = link.icon
-              const isActive = pathname === link.href
-              
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`
-                    group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200
-                    ${isActive 
-                      ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200' 
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    }
-                  `}
-                >
-                  <Icon className={`
-                    mr-3 h-5 w-5 transition-colors
-                    ${isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}
-                  `} />
-                  <div className="flex-1">
-                    <div className={`font-medium ${isActive ? 'text-blue-700' : ''}`}>
-                      {link.name}
-                    </div>
-                    <div className={`text-xs ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
-                      {link.description}
-                    </div>
-                  </div>
-                  {isActive && (
-                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  )}
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* User section */}
-          <div className="border-t border-gray-200 p-4">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-medium text-sm">{storeInitials}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">
-                  {storeName}
-                </div>
-                <div className="text-xs text-gray-500 truncate">
-                  Store Owner
-                </div>
-              </div>
-            </div>
-            
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center px-4 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-            >
-              <LogOut className="mr-3 h-4 w-4" />
-              Sign Out
-            </button>
-          </div>
-        </div>
+      <aside
+        className={`
+          relative
+          fixed inset-y-0 left-0 z-50 bg-[#10192A] transform transition-all duration-300 ease-in-out lg:static lg:inset-0 lg:translate-x-0
+          ${sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full w-72'}
+          ${isCollapsed && hasMounted ? 'lg:w-20' : 'lg:w-72'}
+        `}
+        onMouseEnter={hasMounted ? () => setIsCollapsed(false) : undefined}
+        onMouseLeave={hasMounted ? () => setIsCollapsed(true) : undefined}
+      >
+        <SidebarContent />
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:ml-0">
         {/* Mobile header */}
-        <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+        <header className="lg:hidden bg-white shadow-sm px-4 h-16 flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100"
+            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100"
           >
-            <Menu className="h-5 w-5 text-gray-600" />
+            <Menu className="h-6 w-6" />
           </button>
           
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <BarChart3 className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Xeno Analytics
+            <BarChart3 className="h-7 w-7 text-blue-600" />
+            <span className="text-lg font-bold text-gray-800">
+              Shopify Analytics
             </span>
           </div>
 
@@ -212,10 +197,11 @@ export default function DashboardLayout({ children }) {
         </header>
         
         {/* Page Content */}
-        <main className="flex-1">
+        <main className="flex-1 p-6 overflow-y-auto">
           {children}
         </main>
       </div>
     </div>
   )
 }
+

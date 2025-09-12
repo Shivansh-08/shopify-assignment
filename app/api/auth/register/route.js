@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import prisma from '@/lib/prisma'
-import { importShopifyData, testShopifyConnection } from '@/lib/shopify'
+import { importShopifyData, testShopifyConnection,registerWebhooks } from '@/lib/shopify'
 
 export async function POST(request) {
   try {
@@ -58,7 +58,10 @@ export async function POST(request) {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     )
-
+    console.log('Registering webhooks...')
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+  await registerWebhooks(domain, accessToken, process.env.NEXT_PUBLIC_APP_URL)
+}
     // Start importing all data
     console.log('Starting full data import...')
     await importShopifyData(store.id, domain, accessToken)

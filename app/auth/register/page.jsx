@@ -30,7 +30,7 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (response.ok) {
-        // Save token to localStorage
+        // Save token to localStorage and redirect
         localStorage.setItem('token', data.token)
         router.push('/dashboard')
       } else {
@@ -51,131 +51,136 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-            Connect Your Shopify Store
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Get insights from your customer data
-          </p>
+    // Main container with a light background
+    <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] py-12 px-4">
+      
+      {/* The form card with white background, padding, rounded corners, and shadow */}
+      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg space-y-6">
+        
+        {/* Header Section */}
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Create your account</h2>
+          <p className="mt-2 text-sm text-gray-500">Connect your Shopify store to get started</p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        {/* The Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {/* Display error message if it exists */}
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+                  <span className="block sm:inline">{error}</span>
+              </div>
           )}
 
+          {/* Form fields */}
           <div className="space-y-4">
-            {/* Store Details */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Store Name
-              </label>
-              <input
-                type="text"
-                name="storeName"
-                value={formData.storeName}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="My Awesome Store"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Shopify Domain
-              </label>
-              <input
-                type="text"
-                name="domain"
-                value={formData.domain}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="your-store.myshopify.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Shopify Access Token
-              </label>
-              <input
-                type="password"
-                name="accessToken"
-                value={formData.accessToken}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="shpat_..."
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Get this from your Shopify Admin → Apps → Develop apps
-              </p>
-            </div>
-
-            {/* Account Details */}
-            <div className="pt-4 border-t">
+              {/* Store Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="you@yourstore.com"
-                />
+                  <label htmlFor="storeName" className="block text-sm font-medium text-gray-700">Store Name</label>
+                  <input
+                      id="storeName"
+                      type="text"
+                      name="storeName"
+                      value={formData.storeName}
+                      onChange={handleChange}
+                      required
+                      placeholder="My Awesome Store"
+                      className="mt-1 block w-full border border-gray-300 px-4 py-3 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#611BFB] focus:border-[#611BFB]"
+                  />
               </div>
 
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="••••••••"
-                />
+              {/* Shopify Domain */}
+              <div>
+                  <label htmlFor="domain" className="block text-sm font-medium text-gray-700">Shopify Domain</label>
+                  <input
+                      id="domain"
+                      type="text"
+                      name="domain"
+                      value={formData.domain}
+                      onChange={handleChange}
+                      required
+                      placeholder="your-store.myshopify.com"
+                      className="mt-1 block w-full border border-gray-300 px-4 py-3 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#611BFB] focus:border-[#611BFB]"
+                  />
               </div>
-            </div>
+
+              {/* Shopify Access Token */}
+              <div>
+                  <label htmlFor="accessToken" className="block text-sm font-medium text-gray-700">Shopify Access Token</label>
+                  <input
+                      id="accessToken"
+                      type="password"
+                      name="accessToken"
+                      value={formData.accessToken}
+                      onChange={handleChange}
+                      required
+                      placeholder="shpat_..."
+                      className="mt-1 block w-full border border-gray-300 px-4 py-3 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#611BFB] focus:border-[#611BFB]"
+                  />
+                   <p className="mt-2 text-xs text-gray-500">
+                     Find this in Shopify Admin → Apps → Develop apps for your store.
+                   </p>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-200 !mt-6 !mb-2"></div>
+
+              {/* Email */}
+              <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                  <input
+                      id="email"
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="you@yourstore.com"
+                      className="mt-1 block w-full border border-gray-300 px-4 py-3 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#611BFB] focus:border-[#611BFB]"
+                  />
+              </div>
+
+              {/* Password */}
+              <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                  <input
+                      id="password"
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      placeholder="••••••••"
+                      className="mt-1 block w-full border border-gray-300 px-4 py-3 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#611BFB] focus:border-[#611BFB]"
+                  />
+              </div>
           </div>
-
+          
+          {/* Submit Button */}
           <div>
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-[#611BFB] hover:bg-[#5018d4] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5018d4] disabled:opacity-50"
             >
-              {loading ? 'Setting up your account...' : 'Connect Store'}
+              {loading ? 'Setting up your account...' : 'Create Account & Connect'}
             </button>
           </div>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <button
-                type="button"
-                onClick={() => router.push('/auth/login')}
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                Sign in here
-              </button>
-            </p>
-          </div>
         </form>
+
+        {/* "Already have an account?" Link */}
+        <p className="text-center text-sm text-gray-600">
+          Already have an account?{' '}
+          <button
+            type="button"
+            onClick={() => router.push('/auth/login')}
+            className="font-medium text-[#611BFB] hover:text-[#5018d4]"
+          >
+            Sign in
+          </button>
+        </p>
+        
       </div>
     </div>
   )
