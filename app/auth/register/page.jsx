@@ -63,11 +63,23 @@ export default function RegisterPage() {
           <p className="mt-2 text-sm text-gray-500">Connect your Shopify store to get started</p>
         </div>
 
+        {/* --- THIS IS THE NEW LOADING MESSAGE --- */}
+        {/* It appears only when the form is submitting */}
+        {loading && (
+            <div className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex justify-center items-center mb-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                </div>
+                <p className="font-semibold text-blue-800">Connecting to Shopify...</p>
+                <p className="text-sm text-blue-600 mt-1">Please wait while we import your store data. This may take a minute.</p>
+            </div>
+        )}
+
         {/* The Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Display error message if it exists */}
-          {error && (
+          {error && !loading && ( // Hide old errors while loading
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
                   <span className="block sm:inline">{error}</span>
               </div>
@@ -164,7 +176,7 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-[#611BFB] hover:bg-[#5018d4] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5018d4] disabled:opacity-50"
             >
-              {loading ? 'Setting up your account...' : 'Create Account & Connect'}
+              {loading ? 'Connecting...' : 'Create Account & Connect'}
             </button>
           </div>
         </form>
