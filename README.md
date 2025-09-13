@@ -225,15 +225,72 @@ model LineItem {
 ```
 
 ---
+---
 
-## 📌 Notes  
+## ↔️ API Endpoints  
 
-- Built for the **Xeno FDE Internship Assignment**  
-- Uses **real-time Shopify Webhooks** for data synchronization  
-- Deployed seamlessly on **Vercel** with **Neon PostgreSQL**  
+All API endpoints are located under `/api/`.  
+
+### 🔐 Authentication  
+- **POST** `/api/auth/register`  
+  Onboards a new store and user. Validates Shopify credentials, saves the store, creates a user, registers webhooks, and triggers the initial data import.  
+
+- **POST** `/api/auth/login`  
+  Authenticates a user and returns a JWT.  
 
 ---
 
-## 📜 License  
+### 🛒 Shopify Integration  
+- **POST** `/api/shopify/webhook`  
+  Endpoint that receives all **real-time event notifications** from Shopify.  
 
-This project is for **assignment/demo purposes only**.  
+---
+
+### 📊 Dashboard Data  
+- **GET** `/api/dashboard/analytics`  
+  Fetches aggregated KPI data for the main dashboard.  
+
+- **GET** `/api/dashboard/status`  
+  Fetches store status information (name, totals, last sync time).  
+
+- **GET** `/api/dashboard/orders-list`  
+  Provides a **paginated, searchable, and filterable** list of orders.  
+
+- **GET** `/api/dashboard/orders-stats`  
+  Fetches **store-wide stats** for the orders page KPIs.  
+
+- **GET** `/api/dashboard/customers-list`  
+  Provides a **paginated, searchable, and sortable** list of customers.  
+
+- **GET** `/api/dashboard/products-list`  
+  Provides a **paginated list of products** with calculated sales performance.  
+
+- **GET** `/api/dashboard/revenue-insights`  
+  Provides **time-series revenue analytics data** for the revenue analytics page.  
+
+---
+
+## 💡 Known Limitations & Assumptions  
+
+- **Authentication vs. Authorization**  
+  The onboarding process uses a **Shopify Admin API access token** for simplicity (internal enterprise tool simulation).  
+  For a **public-facing app**, this should be replaced with a **full Shopify OAuth 2.0 flow** for secure authorization.  
+
+- **Initial Sync Scalability**  
+  Initial sync fetches only the **latest 250 records** for each data type.  
+  Stores with large historical data would require a **robust background job system** (e.g., BullMQ) with pagination to avoid timeouts.  
+
+- **Real-Time UI Updates**  
+  The UI does not automatically update when a webhook is received.  
+  Users must refresh or click **"Sync Now"**.  
+  A production-grade app would use **WebSockets** for live updates.  
+
+- **Error Handling & Retries**  
+  Currently includes **basic error handling**.  
+  A production system would add:  
+  - Comprehensive logging (e.g., **Sentry**)  
+  - Dead-letter queues for failed webhooks  
+  - Automatic retry mechanisms  
+
+---
+  
