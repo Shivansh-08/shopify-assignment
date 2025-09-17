@@ -6,6 +6,9 @@ The application allows **Shopify store owners** to connect their stores, ingest 
 
 🔗 **Live Demo**: [Shopify Assignment Demo](https://shopify-assignment-seven.vercel.app/)  
 
+ **Note for Testers:**  The live demo is fully functional for browsing the UI. However, to test the **real-time webhook feature**, please see the **Testing Instructions for Recruiters** section below.
+
+
 ---
 
 ## ✨ Key Features  
@@ -78,6 +81,36 @@ The application is a **full-stack monolith** built with **Next.js**, leveraging:
                                            |                         |
                                            +-------------------------+
 ```
+## 🚀 Testing Instructions for Recruiters
+
+There are two ways to test this application:
+
+### 1. Live Demo (UI and Feature Exploration)
+- Visit the live demo: [https://shopify-assignment-seven.vercel.app/](https://shopify-assignment-seven.vercel.app/)  
+- You can register your own Shopify development store to see the UI populated with your data.  
+- **Note:** The real-time webhook updates will **not** work on this shared demo instance due to the single webhook secret limitation explained below.  
+- The **"Sync Now"** button on the dashboard, however, is fully functional.
+
+---
+
+### 2. Full Functionality Test (Including Webhooks)
+To test **real-time data synchronization via webhooks**, you will need to deploy your own instance of the application.  
+This is required because the simulation uses a private app model, where each store has its own webhook signing secret.
+
+#### Steps:
+1. **Clone the Repository**  
+   Follow the **Local Setup Instructions** below.
+
+2. **Deploy to Vercel**  
+   Import the cloned repository into your own Vercel account.
+
+3. **Set Environment Variables**  
+   - In your Vercel project settings, add all the environment variables from the `.env` file.  
+   - Make sure to use the **API Secret Key** from your own Shopify app for the `SHOPIFY_WEBHOOK_SECRET` variable.
+
+4. **Register Your Store**  
+   - Use your **new Vercel deployment URL** to register your Shopify store.  
+   - Webhooks will now be correctly verified using your secret.
 
 ---
 
