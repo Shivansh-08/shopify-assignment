@@ -1,6 +1,6 @@
-# 📊 Shopify Analytics Dashboard - Xeno FDE Internship Assignment  
+# 📊 Shopify Analytics 
 
-This project is a **multi-tenant Shopify Data Ingestion & Insights Service** built as a submission for the **Xeno Forward Deployed Engineer (FDE) Internship**.  
+This project is a **multi-tenant Shopify Data Ingestion & Insights Service** .  
 
 The application allows **Shopify store owners** to connect their stores, ingest their sales data, and **visualize key business metrics** through a comprehensive and interactive dashboard.  
 
